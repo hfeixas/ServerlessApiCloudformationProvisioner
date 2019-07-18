@@ -1,0 +1,67 @@
+ Parameters:
+  ParentVPCStack:
+    Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
+    Type: String
+    Default: Helder-VPC
+  KeyPair:
+    Description: Keypair to connect to the EC2 instance
+    Type: String
+    Default: admin
+  InstanceSize:
+    Description: Instance Size
+    Type: String
+    Default: t2.medium
+ Resources:
+  Websecuritygroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Web server
+      GroupName: web     
+      VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
+      # VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0 
+        - IpProtocol: tcp
+          FromPort: 21
+          ToPort: 21
+          CidrIp: 10.0.0.0/8
+  WebInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: 24
+            VolumeType: gp2
+      InstanceType: !Ref InstanceSize
+      ImageId: ami-00094b08c165ad78a
+      KeyName: !Ref KeyPair
+      Monitoring: true
+      SecurityGroupIds: 
+        - !Ref Websecuritygroup
+      SubnetId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-PublicSubnet1'}
+      Tags:
+        - Key: Name
+          Value: Server
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -ex
+          LOG_FILE='/var/log/build.log'
+          yum update >> $LOG_FILE
+          yum install -y httpd-tools >> $LOG_FILE
+          
+# Outputs:
+#   EC2IPAddress:
+#     Description: Public Ip of the instance
+#     Value: ${AWS::InstanceIP}

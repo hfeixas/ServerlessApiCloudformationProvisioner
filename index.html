@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <script src="script.sj"></script>
+    <title>Code Generator</title>
+  </head>
+  <style>
+      .overlay {
+          background-color:#EFEFEF;
+          position: fixed;
+          width: 100%;
+          height: 100%;
+          z-index: 1000;
+          top: 0px;
+          left: 0px;
+          opacity: .5; /* in FireFox */ 
+          filter: alpha(opacity=50); /* in IE */
+      }
+      
+      /* Absolute Center Spinner */
+      .loading {
+        position: fixed;
+        z-index: 999;
+        height: 2em;
+        width: 2em;
+        overflow: show;
+        margin: auto;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+      
+      /* Transparent Overlay */
+      .loading:before {
+        content: '';
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+          background: radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0, .8));
+      
+        background: -webkit-radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0,.8));
+      }
+      
+      /* :not(:required) hides these rules from IE9 and below */
+      .loading:not(:required) {
+        /* hide "loading..." text */
+        font: 0/0 a;
+        color: transparent;
+        text-shadow: none;
+        background-color: transparent;
+        border: 0;
+      }
+      
+      .loading:not(:required):after {
+        content: '';
+        display: block;
+        font-size: 10px;
+        width: 1em;
+        height: 1em;
+        margin-top: -0.5em;
+        -webkit-animation: spinner 1500ms infinite linear;
+        -moz-animation: spinner 1500ms infinite linear;
+        -ms-animation: spinner 1500ms infinite linear;
+        -o-animation: spinner 1500ms infinite linear;
+        animation: spinner 1500ms infinite linear;
+        border-radius: 0.5em;
+        -webkit-box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
+      box-shadow: rgba(255,255,255, 0.75) 1.5em 0 0 0, rgba(255,255,255, 0.75) 1.1em 1.1em 0 0, rgba(255,255,255, 0.75) 0 1.5em 0 0, rgba(255,255,255, 0.75) -1.1em 1.1em 0 0, rgba(255,255,255, 0.75) -1.5em 0 0 0, rgba(255,255,255, 0.75) -1.1em -1.1em 0 0, rgba(255,255,255, 0.75) 0 -1.5em 0 0, rgba(255,255,255, 0.75) 1.1em -1.1em 0 0;
+      }
+      
+      /* Animation */
+      
+      @-webkit-keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
+          -moz-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+          -moz-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          -o-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @-moz-keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
+          -moz-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+          -moz-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          -o-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @-o-keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
+          -moz-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+          -moz-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          -o-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
+          -moz-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+          -moz-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          -o-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      </style>
+  <body>
+    <div class="container" >
+      <div class="row justify-content-center">
+        <div class="col-lg-12">
+          <h1 class="mt-2">Code Generator</h1>
+              <a href="#" class="btn btn-secondary">DXGW List</a>
+              <a href="#" class="btn btn-secondary">VPC List</a>
+              <a href="#" class="btn btn-secondary">DMVPN List</a>
+          <hr class="mt-0 mb-4">      
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+  <form method="post" novalidate>
+    <!-- account_name -->
+    <div id="div_id_hostname" class="form-group">
+      <div class="row">
+        <div class="col-6">
+    <label for="id_hostname" class="col-form-label  requiredField">Hostname<span class="asteriskField">*</span>
+    </label>
+    <input type="text" name="hostname" maxlength="130" class="textinput textInput form-control" required id="id_hostname">
+  </div>
+<div class=conatiner>
+  <div class="col-6">
+      <label for="id_role" class="col-form-label  requiredField">Role <span class="asteriskField">*</span></label>
+      <select name="role" id="div_id_role" class="select form-control" required id="id_role">
+        <option value="" selected>---------</option>
+        <option value="dmvpn">DMVPN Router</option>
+        <option value="mpls">MPLS Router</option>
+        <option value="core">Core Switch</option>
+      </select>
+  </div>
+</div>
+</div>
+      <!-- account_name -->
+      <div id="div_id_management_subnet" class="form-group">
+        <div class="row">
+          <div class="col-6">
+      <label for="id_management_subnet" class="col-form-label  requiredField">Management Subnet<span class="asteriskField">*</span>
+      </label>
+      <input type="text" name="management_subnet" maxlength="130" placeholder="192.168.1.0/25" class="textinput textInput form-control" required id="id_management_subnet">
+    </div>
+
+      <!-- account_number -->
+      <div id="div_id_data_subnet" class="col-6">
+        <label for="id_data_subnet" class="col-form-label  requiredField">Data Subnet<span class="asteriskField">*</span>
+      </label>
+      <a>(Please use /22 Subnet for an office)</a>
+      <input type="text" name="data_subnet" maxlength="130" placeholder="192.168.1.0/22" class="textinput textInput form-control" required id="id_data_subnet">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="row"> 
+        <div class="col-6" id="div_id_outside_interface" style="display: none;">
+          <label for="id_outside_interface" class="col-form-label  requiredField">Outside Interface<span class="asteriskField">*</span></label>
+          <select name="outside_interface" class="select form-control" required id="id_outside_interface">
+            <option value="" selected>---------</option>
+            <option value="GigabitEthernet0/0/0">GigabitEthernet0/0/0</option>
+            <option value="GigabitEthernet0/0/1">GigabitEthernet0/0/1</option>
+            <option value="GigabitEthernet0/0/2">GigabitEthernet0/0/2</option>
+            <option value="GigabitEthernet0/0/3">GigabitEthernet0/0/3</option>
+            <option value="Vlan999">Vlan999</option>
+            <option value="Loopback0">Loopback0</option>
+        </select>
+      </div>
+
+         <div id="div_id_management_interface" class="col-6" style="display: none;">
+            <label for="id_management_interface" class="col-form-label  requiredField">Management Interface<span class="asteriskField">*</span></label>
+            <select name="management_interface" class="select form-control" required id="id_management_interface">
+              <option value="" selected>---------</option>
+              <option value="GigabitEthernet0/0/0">GigabitEthernet0/0/0</option>
+              <option value="GigabitEthernet0/0/1">GigabitEthernet0/0/1</option>
+              <option value="GigabitEthernet0/0/2">GigabitEthernet0/0/2</option>
+              <option value="GigabitEthernet0/0/3">GigabitEthernet0/0/3</option>
+              <option value="Vlan999">Vlan999</option>
+              <option value="Loopback0">Loopback0</option>
+            </select>
+        </div>
+    </div>
+  </div>
+
+  <div class="form-group" >
+      <div class="row"> 
+        <div class="col-6" id="div_id_site" style="display: none;">
+          <label for="id_site" class="col-form-label  requiredField">Site<span class="asteriskField">*</span></label>
+            <input type="text" name="site" maxlength="130" placeholder="shorthills" class="textinput textInput form-control" required id="id_site">
+      </div>
+
+         <div id="div_id_primary_internet_dc" class="col-6" style="display: none;">
+            <label for="id_primary_internet_dc" class="col-form-label  requiredField">Primary Internet DC<span class="asteriskField">*</span></label>
+            <select name="primary_internet_dc" class="select form-control" required id="id_primary_internet_dc">
+              <option value="" selected>---------</option>
+              <option value="dc2">dc2 </option>
+              <option value="dc5">dc5 </option>
+              <option value="se3a">se3a </option>
+              <option value="se3b">se3b </option>
+              <option value="ld5a">ld5a </option>
+              <option value="sg2">sg2 </option>
+              <option value="sy4">sy4 </option>
+              <option value="ld5b">ld5b </option>
+            </select>
+        </div>
+    </div>
+  </div>
+  
+  <div  class="form-group" >
+      <div class="row"> 
+        <div class="col-4" id="div_id_bandwidth" style="display: none;" >
+          <label for="id_bandwidth" class="col-form-label  requiredField">Circuit Bandiwidth<span class="asteriskField">*</span></label>
+          <select name="bandwidth" class="select form-control" required id="id_bandwidth">
+            <option value="" selected>---------</option>
+            <option value="20000">20 Mb</option>
+            <option value="30000">30 Mb</option>
+            <option value="40000">40 Mb</option>
+            <option value="50000">50 Mb</option>
+            <option value="60000">60 Mb</option>
+            <option value="70000">70 Mb</option>
+            <option value="80000">80 Mb</option>
+            <option value="90000">90 Mb</option>
+            <option value="100000">100 Mb</option>  
+          </select>
+      </div>
+
+      <div id="div_id_circuit_id" class="col-4" style="display: none;">
+      <label for="id_circuit_id" class="col-form-label  requiredField">Circuit ID<span class="asteriskField">*</span>
+      </label>
+      <input type="text" name="circuit_id" maxlength="130" placeholder="CKTID:12345678" class="textinput textInput form-control" required id="id_circuit_id">
+    </div>
+
+    <div id="div_id_bgp_as" class="col-4" style="display: none;">
+      <label for="id_bgp_as" class="col-form-label  requiredField">BGP AS<span class="asteriskField">*</span>
+      </label>
+      <input type="text" name="bgp_as" maxlength="130" placeholder="65000" class="textinput textInput form-control" required id="id_bgp_as">
+      </div>
+    </div>
+            <!-- account_name -->
+        <div  class="form-group" >
+            <div class="row">
+              <div class="col-4"  id="div_id_tun0_ip" style="display: none;">
+          <label for="id_tun0_ip" class="col-form-label  requiredField">Tunnel 0<span class="asteriskField">*</span>
+          </label>
+          <input type="text" name="tun0_ip" maxlength="130" placeholder="192.168.1.0" class="textinput textInput form-control" required id="id_tun0_ip">
+        </div>
+      
+          <!-- account_number -->
+          <div id="div_id_tun1_ip" class="col-4" style="display: none;">
+          <label for="id_tun1_ip" class="col-form-label  requiredField">Tunnel 1<span class="asteriskField">*</span>
+          </label>
+          <input type="text" name="tun1_ip" maxlength="130" placeholder="192.168.1.0" class="textinput textInput form-control" required id="id_tun1_ip">
+          </div>
+      </div>
+    
+
+          <div  class="form-group" >
+              <div class="row"> 
+                <div class="col-4" id="div_id_floors" style="display: none;" >
+                  <label for="id_floors" class="col-form-label  requiredField">Floors<span class="asteriskField">*</span></label>
+                  <select name="floors" class="select form-control" required id="id_floors">
+                    <option value="" selected>---------</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+              </div>
+           <div id="div_starting_floor" class="col-4" style="display: none;">
+            <label for="id_starting_floor" class="col-form-label  requiredField">Starting Floor<span class="asteriskField">*</span>
+            </label>
+            <input type="text" name="starting_floor" maxlength="130" placeholder="1" class="textinput textInput form-control" required id="id_starting_floor">
+            </div>
+            <div id="div_stack_switches" class="col-4" style="display: none;">
+             <label for="id_stack_switches" class="col-form-label  requiredField">Number Of Switches In Stack <span class="asteriskField">*</span>
+             </label>
+             <input type="text" name="stack_switches" maxlength="130" placeholder="1" class="textinput textInput form-control" required id="id_stack_switches">
+             </div>
+          </div>
+          <div  class="form-group" >
+          <div class="row"> 
+          <div id="div_id_dnb_circuit_ip" class="col-6" style="display: none;">
+            <label for="id_dnb_circuit_ip" class="col-form-label  requiredField">DNB Side Circuit IP<span class="asteriskField">*</span>
+            </label>
+            <input type="text" name="dnb_circuit_ip" maxlength="130" placeholder="192.168.1.30/30" class="textinput textInput form-control" required id="id_dnb_circuit_ip">
+          </div>
+
+          <div id="div_id_vendor_circuit_ip" class="col-6" style="display: none;">
+            <label for="id_vendor_circuit_ip" class="col-form-label  requiredField">Vendor Side Circuit IP<span class="asteriskField">*</span>
+            </label>
+            <input type="text" name="vendor_circuit_ip" maxlength="130" placeholder="192.168.1.30/30" class="textinput textInput form-control" required id="id_vendor_circuit_ip">
+          </div>
+
+        </div>
+
+  <br>
+      <button type="submit" id="submit" class="btn btn-success">Save Device</button>
+
+  </form>
+  <div id='results-message'></div>
+  <div id='error-message'></div>
+  <div id='success-message'></div>
+<script>
+ $('#div_id_role').on('change',function() {
+   if (this.value == "dmvpn") {
+      $('#div_id_outside_interface').show()
+      $('#div_id_management_interface').show()
+      $('#div_id_primary_internet_dc').show()
+      $('#div_id_site').show()
+      $('#div_id_bandwidth').show()
+      $('#div_id_circuit_id').show()
+      $('#div_id_dnb_circuit_ip').show()
+      $('#div_id_vendor_circuit_ip').show()
+      $('#div_id_tun0_ip').show()
+      $('#div_id_tun1_ip').show()
+      $('#div_id_bgp_as').show()
+      $('#div_id_floors').hide()
+      $('#div_starting_floor').hide()
+      $('#div_stack_switches').hide()
+ } else if (this.value ==  "mpls") {
+      $('#div_id_outside_interface').show()
+      $('#div_id_management_interface').show()
+      $('#div_id_primary_internet_dc').show()
+      $('#div_id_bandwidth').show()
+      $('#div_id_circuit_id').show()
+      $('#div_id_dnb_circuit_ip').show()
+      $('#div_id_vendor_circuit_ip').show()
+      $('#div_id_tun0_ip').hide()
+      $('#div_id_tun1_ip').hide()
+      $('#div_id_bgp_as').show()
+      $('#div_id_site').show()
+      $('#div_stack_switches').hide()
+      $('#div_id_floors').hide()
+      $('#div_starting_floor').hide()
+ } else if (this.value == "core") {
+      $('#div_starting_floor').show()
+      $('#div_stack_switches').show()
+      $('#div_id_floors').show()
+      $('#div_id_outside_interface').hide()
+      $('#div_id_management_interface').show()
+      $('#div_id_primary_internet_dc').hide()
+      $('#div_id_bandwidth').hide()
+      $('#div_id_circuit_id').hide()
+      $('#div_id_dnb_circuit_ip').hide()
+      $('#div_id_vendor_circuit_ip').hide()
+      $('#div_id_tun0_ip').hide()
+      $('#div_id_tun1_ip').hide()
+      $('#div_id_bgp_as').show()
+      $('#div_id_site').show()
+} else {
+}
+ });
+
+ var API_ENDPOINT = 'https://ge5db2f853.execute-api.us-east-1.amazonaws.com/prod/serverless';
+
+// // Setup divs that will be used to display interactive messages
+var errorDiv = document.getElementById('error-message')
+var successDiv = document.getElementById('success-message')
+var resultsDiv = document.getElementById('results-message')
+
+// Setup easy way to reference values of the input boxes
+function hostname() { return document.getElementById('div_id_hostname').value }
+function role() { return document.getElementById('div_id_role').value }
+function management_subnet() { return document.getElementById('div_id_management_subnet').value }
+function data_subnet() { return document.getElementById('div_id_data_subnet').value }
+
+function clearNotifications() {
+    // Clear any exisiting notifications in the browser notifications divs
+    errorDiv.textContent = '';
+    resultsDiv.textContent = '';
+    successDiv.textContent = '';
+}
+
+// Add listeners for each button that make the API request
+document.getElementById('submit').addEventListener('click', function(e) {
+    sendData(e, 'submit');
+});
+
+function sendData (e, pref) {
+    // Prevent the page reloading and clear exisiting notifications
+    e.preventDefault()
+    clearNotifications()
+    // Prepare the appropriate HTTP request to the API with fetch
+    // create uses the root /prometheon endpoint and requires a JSON payload
+    fetch(API_ENDPOINT, {
+        headers:{
+            "Content-type": "application/json"
+        },
+        method: 'POST',
+        body: JSON.stringify({
+            hostname: hostname(),
+            role: role(),
+            management_subnet: management_subnet(),
+            data_subnet: data_subnet()
+        }),
+        // mode: 'cors'
+    })
+    .then((resp) => resp.json())
+    .then(function(data) {
+        console.log(data)
+        successDiv.textContent = 'Successful';
+        resultsDiv.textContent = JSON.stringify(data);
+    })
+    .catch(function(err) {
+        errorDiv.textContent = 'Yikes! There was an error:\n' + err.toString();
+        console.log(err)
+    });
+};
+
+</script>
+
