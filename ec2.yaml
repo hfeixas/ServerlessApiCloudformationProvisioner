@@ -19,18 +19,7 @@ Resources:
   AWXBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join
-      - "-"
-      - - !Ref BucketName
-        - !Select
-          - 0
-          - !Split
-            - "-"
-            - !Select
-              - 2
-              - !Split
-                - "/"
-                - !Ref "AWS::StackId"
+      BucketName: !Join [ '-', [!Ref BucketName, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       LifecycleConfiguration: 
         Rules:
           - ExpirationInDays: 60
@@ -41,18 +30,7 @@ Resources:
   S3AWXIAMRole:
     Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Join
-      - "-"
-      - - S3AWXIAMRole
-        - !Select
-          - 0
-          - !Split
-            - "-"
-            - !Select
-              - 2
-              - !Split
-                - "/"
-                - !Ref "AWS::StackId"
+      RoleName: !Join [ '-', [S3AWXIAMRole, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       AssumeRolePolicyDocument: 
         Version: "2012-10-17"
         Statement: 
@@ -67,18 +45,7 @@ Resources:
   AWXS3Policy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Join
-      - "-"
-      - - AWXS3Policy
-        - !Select
-          - 0
-          - !Split
-            - "-"
-            - !Select
-              - 2
-              - !Split
-                - "/"
-                - !Ref "AWS::StackId"
+      PolicyName: !Join [ '-', [AWXS3Policy, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       Roles:
         -
          Ref: "S3AWXIAMRole"
@@ -98,18 +65,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Web server
-      GroupName: !Join
-      - "-"
-      - - AWXSecurityGroup
-        - !Select
-          - 0
-          - !Split
-            - "-"
-            - !Select
-              - 2
-              - !Split
-                - "/"
-                - !Ref "AWS::StackId"     
+      GroupName: !Join [ '-', [AWXSecurityGroup, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       VpcId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'}
       # VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -147,18 +103,7 @@ Resources:
       SubnetId: {'Fn::ImportValue': !Sub '${ParentVPCStack}-PublicSubnet1'}
       Tags:
         - Key: Name
-          Value: !Join
-            - "-"
-            - - AWXInstance
-              - !Select
-                - 0
-                - !Split
-                  - "-"
-                  - !Select
-                    - 2
-                    - !Split
-                      - "/"
-                      - !Ref "AWS::StackId"   
+          Value: !Join [ '-', [AWXInstance, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       UserData:
         Fn::Base64:
           Fn::Sub:

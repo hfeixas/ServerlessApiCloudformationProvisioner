@@ -7,7 +7,7 @@ Resources:
   AWXBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join [ '-', [!Ref BucketName, !Ref "AWS::StackId"] ]
+      BucketName: !Join [ '-', [!Ref BucketName, !Select [0, !Split ["-", !Select [2, !Split ["/" , !Ref "AWS::StackId"]]]]]]
       LifecycleConfiguration: 
         Rules:
           - ExpirationInDays: 60
@@ -15,3 +15,4 @@ Resources:
             Transition: 
               StorageClass: GLACIER
               TransitionInDays: 14
+
