@@ -45,7 +45,7 @@
             VolumeSize: 24
             VolumeType: gp2
       InstanceType: !Ref InstanceSize
-      ImageId: ami-00094b08c165ad78a
+      ImageId: ami-0015b9ef68c77328d
       KeyName: !Ref KeyPair
       Monitoring: true
       SecurityGroupIds: 
@@ -57,11 +57,177 @@
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -ex
-          LOG_FILE='/var/log/build.log'
-          yum update >> $LOG_FILE
-          yum install -y httpd-tools >> $LOG_FILE
-          
-# Outputs:
-#   EC2IPAddress:
-#     Description: Public Ip of the instance
-#     Value: ${AWS::InstanceIP}
+          SCRIPT_LOG='/var/log/build.log';
+          touch $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Starting Build Process" >> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Installing packages" >> $SCRIPT_LOG; 
+          yum -y install -y epel-release &>> $SCRIPT_LOG; 
+          yum -y install https://centos7.iuscommunity.org/ius-release.rpm &>> $SCRIPT_LOG; 
+          yum -y install wget.x86_64 nano.x86_64 traceroute.x86_64 bind-utils.x86_64 telnet.x86_64 nmap-ncat.x86_64 nmap.x86_64 mlocate.x86_64 jq.x86_64 rubygems.noarch centos-release-scl unzip.x86_64 git git.x86_64 iperf.x86_64 &>> $SCRIPT_LOG; 
+          yum -y install python36u python36u-devel python36u-pip python34-setuptools &>> $SCRIPT_LOG; 
+          yum install -y awscli.noarch
+          date >> $SCRIPT_LOG
+          echo "Finished Installing packages" >> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Install AWS CLI" >> $SCRIPT_LOG; 
+          easy_install-3.4 pip  &>> $SCRIPT_LOG; 
+          pip3 install awscli --ignore-installed &>> $SCRIPT_LOG; 
+          mkdir /root/.aws
+          mkdir /home/centos/.aws
+          echo "[default]" > /root/.aws/credentials; 
+          echo "aws_access_key_id=" >> /root/.aws/credentials
+          echo "aws_secret_access_key=" >> /root/.aws/credentials
+          echo "region=" >> /root/.aws/credentials
+          echo "[default]" > /home/centos/.aws/credentials; 
+          echo "aws_access_key_id=" >> /home/centos/.aws/credentials
+          echo "aws_secret_access_key=" >> /home/centos/.aws/credentials
+          echo "region=" >> /home/centos/.aws/credentials
+          date >> $SCRIPT_LOG
+          echo "Finished install AWS CLI" >> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Download Terraform and Packer" >> $SCRIPT_LOG; 
+          terraform_url=$(curl --silent https://releases.hashicorp.com/index.json | jq '{terraform}' | egrep "http.*linux.*64" | sort --version-sort -r  | head -1 | awk -F[\"] '{print $4}')
+          packer_url=$(curl --silent https://releases.hashicorp.com/index.json | jq '{packer}' | egrep "http.*linux.*64" | sort --version-sort -r  | head -1 | awk -F[\"] '{print $4}')
+          mkdir /root/packer
+          mkdir /root/terraform
+          cd /root/terraform
+          curl -o terraform.zip $terraform_url &>> $SCRIPT_LOG;
+          unzip -qq terraform.zip &>> $SCRIPT_LOG;
+          cp /root/terraform/terraform /usr/bin/terraform
+          cd /root/packer
+          curl -o packer.zip $packer_url &>> $SCRIPT_LOG;
+          unzip -qq packer.zip &>> $SCRIPT_LOG;
+          cp /root/packer/packer /usr/bin/packer
+          date >> $SCRIPT_LOG
+          echo "Finished downloading Terraform and Packer" >> $SCRIPT_LOG;  
+          date >> $SCRIPT_LOG
+          echo "Install Terraforming" >> $SCRIPT_LOG; 
+          ruby -v &>> $SCRIPT_LOG;
+          yum-config-manager --enable rhel-server-rhscl-7-rpms &>> $SCRIPT_LOG;
+          yum -y install rh-ruby23 &>> $SCRIPT_LOG;
+          scl enable rh-ruby23 bash &>> $SCRIPT_LOG;
+          ruby -v &>> $SCRIPT_LOG;
+          gem install terraforming &>> $SCRIPT_LOG;
+          echo "source scl_source enable rh-ruby23" >> /etc/skel/.bash_profile
+          echo "source scl_source enable rh-ruby23" >> /home/centos/.bash_profile
+          echo "source scl_source enable rh-ruby23" >> /root/.bash_profile
+          date >> $SCRIPT_LOG
+          echo "Finished Installing Terraforming" >> $SCRIPT_LOG;   
+          date >> $SCRIPT_LOG
+          echo "Running updatedb" >> $SCRIPT_LOG; 
+          updatedb &>> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Finished running updatedb" >> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Running yum update -y" >> $SCRIPT_LOG; 
+          yum update -y &>> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Finished running yum update -y" >> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Running updatedb again" >> $SCRIPT_LOG; 
+          updatedb &>> $SCRIPT_LOG; 
+          date >> $SCRIPT_LOG
+          echo "Finished running updatedb the second time" >> $SCRIPT_LOG; 
+          #################################
+          #           s3cfg               #
+          #################################
+          yum -y install s3cmd.noarch &>> $SCRIPT_LOG;
+          # touch /root/.s3cfg &>> $SCRIPT_LOG;
+          # echo "[default]" >> /root/.s3cfg
+          # echo "access_key = " >> /root/.s3cfg
+          # echo "secret_key = " >> /root/.s3cfg
+          # echo "region = " >> /root/.s3cfg
+          #################################
+          #          Backup Cron          #
+          #################################
+          echo "#!/bin/bash" >> /home/centos/backup.sh
+          echo "# Tar Directories" >> /home/centos/backup.sh
+          echo "date=\$(date +"%Y%m%d%H%M%S")" >> /home/centos/backup.sh
+          echo "umask 133" >> /home/centos/backup.sh
+          echo "mkdir /tmp/jenkins/ /tmp/awx/" >> /home/centos/backup.sh
+          echo "tar -czvf /tmp/jenkins/jenkins-backup-\$date.tar.gz /var/lib/jenkins/" >> /home/centos/backup.sh
+          echo "tar -czvf /tmp/awx/awx-backup-\$date.tar.gz /home/centos/pgdocker/pgdata/" >> /home/centos/backup.sh
+          echo "# Upload to S3" >> /home/centos/backup.sh
+          echo "s3cmd put /tmp/jenkins/jenkins-backup-* s3://test-box-backup-bucket/jenkins-backup/" >> /home/centos/backup.sh
+          echo "s3cmd put /tmp/awx/awx-backup-* s3://test-box-backup-bucket/awx-backup/" >> /home/centos/backup.sh
+          echo "cd /home/centos/pgdocker" >> /home/centos/backup.sh
+          echo "tar -czvf awx-latest.tar.gz pgdata/" >> /home/centos/backup.sh
+          echo "s3cmd put -r /home/centos/pgdocker/awx-latest.tar.gz  s3://test-box-backup-bucket/awx-backup/latest/" >> /home/centos/backup.sh
+          echo "rm /home/centos/pgdocker/awx-latest.tar.gz" >> /home/centos/backup.sh
+          echo "cd /var/lib/" >> /home/centos/backup.sh
+          echo "tar -czvf jenkins-latest.tar.gz jenkins/" >> /home/centos/backup.sh
+          echo "s3cmd put -r /var/lib/jenkins-latest.tar.gz  s3://test-box-backup-bucket/jenkins-backup/latest/" >> /home/centos/backup.sh
+          echo "rm /var/lib/jenkins-latest.tar.gz" >> /home/centos/backup.sh
+          echo "# Clean up" >> /home/centos/backup.sh
+          echo "sudo rm -r /tmp/jenkins/" >> /home/centos/backup.sh
+          echo "sudo rm -r /tmp/awx/" >> /home/centos/backup.sh
+          chmod a+x /home/centos/backup.sh
+          cp /home/centos/backup.sh /etc/cron.daily/backup.sh
+          #################################
+          #            AWX                #
+          #################################
+          sudo yum install -y epel-release &>> $SCRIPT_LOG;
+          yum -y install git gettext ansible docker nodejs npm gcc-c++ bzip2 python-pip  &>> $SCRIPT_LOG;
+          systemctl start docker &>> $SCRIPT_LOG;
+          systemctl enable docker &>> $SCRIPT_LOG;
+          setenforce 0 &>> $SCRIPT_LOG;
+          git clone https://github.com/ansible/awx.git /home/centos/awx &>> $SCRIPT_LOG;
+          pip install virtualenv &>> $SCRIPT_LOG;
+          python -m virtualenv /home/centos/awx/installer/awx &>> $SCRIPT_LOG;
+          source /home/centos/awx/installer/awx/bin/activate &>> $SCRIPT_LOG;
+          pip install docker-compose &>> $SCRIPT_LOG;
+          pip install docker &>> $SCRIPT_LOG;
+          sed -i 's/\/usr\/bin\/env python/\/home\/centos\/awx\/installer\/awx\/bin\/python/g' /home/centos/awx/installer/inventory
+          sed -i 's/\/tmp\/awxcompose/\/home\/centos\/awxcompose/g' /home/centos/awx/installer/inventory
+          sed -i 's/\/tmp\/pgdocker/\/home\/centos\/pgdocker/g' /home/centos/awx/installer/inventory
+          pip install selinux &>> $SCRIPT_LOG;
+          ansible-playbook -i /home/centos/awx/installer/inventory /home/centos/awx/installer/install.yml &>> $SCRIPT_LOG;
+          # sleep 600 &>> $SCRIPT_LOG;
+          echo "source /home/centos/awx/installer/awx/bin/activate " >> /home/centos/awx_recover_db.sh
+          echo "docker-compose -f /home/centos/awxcompose/docker-compose.yml stop " >> /home/centos/awx_recover_db.sh
+          echo "sudo rm -r /home/centos/pgdocker/pgdata " >> /home/centos/awx_recover_db.sh
+          echo "s3cmd get s3://test-box-backup-bucket/awx-backup/latest/awx-latest.tar.gz /home/centos/pgdocker/ " >> /home/centos/awx_recover_db.sh
+          echo "cd /home/centos/pgdocker" >> /home/centos/awx_recover_db.sh
+          echo "tar -xzvf /home/centos/pgdocker/awx-latest.tar.gz " >> /home/centos/awx_recover_db.sh
+          echo "sudo rm -r /home/centos/pgdocker/awx-latest.tar.gz " >> /home/centos/awx_recover_db.sh
+          echo "docker-compose -f /home/centos/awxcompose/docker-compose.yml up -d " >> /home/centos/awx_recover_db.sh
+          chmod a+x /home/centos/awx_recover_db.sh
+          ##################################
+          #           jenkins              #
+          ##################################
+          sudo yum install -y java-1.8.0-openjdk-devel &>> $SCRIPT_LOG;
+          curl --silent --location http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo | sudo tee /etc/yum.repos.d/jenkins.repo &>> $SCRIPT_LOG;
+          sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+          sudo yum install -y jenkins &>> $SCRIPT_LOG;
+          sudo systemctl enable jenkins &>> $SCRIPT_LOG;
+          sed -i '/JENKINS_USER="jenkins"/c\JENKINS_USER="root"' /etc/sysconfig/jenkins
+          sudo systemctl start jenkins &>> $SCRIPT_LOG;
+          echo "sudo rm -r /var/lib/jenkins " >> /home/centos/jenkins_recover_db.sh
+          echo "s3cmd get s3://test-box-backup-bucket/jenkins-backup/latest/jenkins-latest.tar.gz /var/lib/ " >> /home/centos/jenkins_recover_db.sh
+          echo "cd /var/lib/" >> /home/centos/jenkins_recover_db.sh
+          echo "tar -xzvf /var/lib/jenkins-latest.tar.gz " >> /home/centos/jenkins_recover_db.sh
+          echo "sudo rm /var/lib/jenkins-latest.tar.gz " >> /home/centos/jenkins_recover_db.sh
+          echo "chown -R jenkins:jenkins /var/lib/jenkins/ " >> /home/centos/jenkins_recover_db.sh
+          echo "find /var/lib/jenkins/jobs -type d \( -name \"last*Build\" -o -name \"lastStable\" -o -name \"lastSuccessful\" \\) -exec mv {} {}.err \\;" >> /home/centos/jenkins_recover_db.sh
+          echo "sudo systemctl start jenkins " >> /home/centos/jenkins_recover_db.sh
+          chmod a+x /home/centos/jenkins_recover_db.sh
+          date >> $SCRIPT_LOG
+          echo "Finished Build Process" >> $SCRIPT_LOG;
+          ##################################
+          #           Recovery             #
+          ##################################
+          echo "Recovering Jenkins" &>> $SCRIPT_LOG;
+          /home/centos/jenkins_recover_db.sh &>> $SCRIPT_LOG;
+          sleep 60 
+          echo "Recovering AWX" &>> $SCRIPT_LOG;
+          /home/centos/awx_recover_db.sh &>> $SCRIPT_LOG;
+          sleep 60 
+          ##################################
+          #           Backup               #
+          ##################################
+          echo "Setting up Backup Job" &>> $SCRIPT_LOG;
+          cp /home/centos/backup.sh /etc/cron.daily/backup.sh &>> $SCRIPT_LOG;
+          date &>> $SCRIPT_LOG;
+          echo "Done" &>> $SCRIPT_LOG;
