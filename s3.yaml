@@ -1,5 +1,3 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: create a S3 bucket
 Parameters:
   BucketName:    
     Description: Name of the Bucket
@@ -9,18 +7,7 @@ Resources:
   AWXBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join
-      - "-"
-      - - !Ref BucketName
-        - !Select
-          - 0
-          - !Split
-            - "-"
-            - !Select
-              - 2
-              - !Split
-                - "/"
-                - !Ref "AWS::StackId"
+      BucketName: !Join [ '-', [!Ref BucketName, !Ref "AWS::StackId"] ]
       LifecycleConfiguration: 
         Rules:
           - ExpirationInDays: 60
@@ -28,37 +15,3 @@ Resources:
             Transition: 
               StorageClass: GLACIER
               TransitionInDays: 14
-  S3AWXIAMRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      ManagedPolicyArns: 
-        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-      AssumeRolePolicyDocument: 
-        Version: "2012-10-17"
-        Statement: 
-          - 
-            Effect: "Allow"
-            Principal: 
-              Service: 
-                - "ec2.amazonaws.com"
-            Action: 
-              - "sts:AssumeRole"
-      Path: "/"
-  SamplePolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: awx-policy
-      PolicyDocument:
-        Statement:
-        - Effect: Allow
-          Action: ['s3:*']
-          Resource: !Ref AWXBucket
-  # AWS::IAM::InstanceProfile
-  # Creates an AWS Identity and Access Management (IAM) Instance Profile that can be used with IAM Roles for EC2 Instances.
-  IAMS3AWXnstanceProfile: 
-    Type: "AWS::IAM::InstanceProfile"
-    Properties: 
-      Path: "/"
-      Roles: 
-        - 
-          Ref: "S3AWXIAMRole"
