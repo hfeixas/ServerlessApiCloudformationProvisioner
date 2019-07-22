@@ -75,8 +75,6 @@ Resources:
               echo "Banner /etc/ssh/banner_text" >> /etc/ssh/sshd_config
               service sshd restart
             - {
-              # This is where we keep the complex things we want inserted into the Fn::Sub literal block
-              # You can even use Fn::If statements in this section
               Bucket:                       !Ref InstanceSecurityGroup,
               LocalFindInMapVarWebserver:   !FindInMap [ EnvMap,                !Ref EnvNameParam,         WebServer ],
               LocalIfVar:                   !If        [ ExampleConditionIfDev, 'This box is development', 'This box is testing' ]
